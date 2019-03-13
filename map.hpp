@@ -7,6 +7,7 @@
 // only for std::less<T>
 #include <functional>
 #include <cstddef>
+#include <iostream>
 #include "utility.hpp"
 #include "exceptions.hpp"
 
@@ -65,16 +66,20 @@ private:
 		update(x);
 	}
 
-	pair<node *, bool> insert(node *&x, const Key &k, const T &t) {
+	pair<node *, bool> insert(node *&x, const Key &k, const T &d) {
 		bool flag = true;
 		if (x == NULL) {
-			x = new node(k, t);
-			return value_type(x, true);
+			x = new node(k, d);
+			return pair<node *, bool>(x, true);
 		}
-		pair<node *, bool> tmp = value_type(NULL, true);
+		// pair<node *, bool> tmp = pair<node *, bool>(NULL, true);
+		node *tmp1 = NULL;
+		bool tmp2 = true;
 		if (Compare()(k, x -> value.first)) {
 			// node *p = x -> ch[0];
-			tmp = insert(x -> ch[0], k);
+			auto tmp = insert(x -> ch[0], k, d);
+			tmp1 = tmp.first;
+			tmp2 = tmp.second;
 			if (tmp.second) {
 				update(x);
 				if (tmp.first == x -> ch[0]) {
@@ -90,7 +95,9 @@ private:
 		}
 		else if (Compare()(x -> value.first, k)) {
 			// node *p = x -> ch[1];
-			tmp = insert(x -> ch[1], k);
+			auto tmp = insert(x -> ch[1], k, d);
+			tmp1 = tmp.first;
+			tmp2 = tmp.second;
 			if (tmp.second) {
 				update(x);
 				if (tmp.first == x -> ch[1]) {
@@ -105,12 +112,12 @@ private:
 			}
 		}
 		else {
-			return value_type(x, false);
+			return pair<node *, bool>(x, false);
 		}
-		return tmp;
+		return pair<node *, bool>(tmp1, tmp2);
 	}
 
-	node *query(node *&x, const Key &k) {
+	node *query(node * const &x, const Key &k) const{
 		if (x == NULL) {
 			throw index_out_of_bound();
 		}
@@ -148,6 +155,24 @@ private:
 	}
 
 public:
+	class iterator;
+	class const_iterator;
+
+private:
+	node *last() const {
+		node *p = root;
+		if (p == NULL)  return p;
+		while(p -> ch[1]) p = p -> ch[1];
+		return p;
+	}
+	// const_iterator clast() {
+	// 	node *p = root;
+	// 	if (p == NULL)  return iterator(p);
+	// 	while(p -> ch[1]) p = p -> ch[1];
+	// 	return iterator(p);
+	// }
+
+public:
 	/**
 	 * the internal type of data.
 	 * it should have a default constructor, a copy constructor.
@@ -160,10 +185,10 @@ public:
 	 *     like it = map.begin(); --it;
 	 *       or it = map.end(); ++end();
 	 */
-	class const_iterator;
 	class iterator {
 	private:
 		node *pos;
+		const map<Key, T, Compare> *from;
 		/**
 		 * TODO add data members
 		 *   just add whatever you want.
@@ -173,11 +198,9 @@ public:
 			// TODO
 		}
 
-		iterator(node *_pos) : pos(_pos) {}
+		iterator(node *_pos, const map<Key, T, Compare> *_from) : pos(_pos), from(_from){}
 
-		iterator(const iterator &other) : pos(other.pos) {
-			// TODO
-		}
+		iterator(const iterator &other) = default;
 		/**
 		 * return a new iterator which pointer n-next elements
 		 *   even if there are not enough elements, just return the answer.
@@ -189,27 +212,29 @@ public:
 		iterator operator++(int) {
 			node *op = pos;
 			pos = pos -> next[1];
-			return op;
+			return iterator(op, from);
 		}
 		/**
 		 * TODO ++iter
 		 */
 		iterator & operator++() {
-			return pos = pos -> next[1];
+			pos = pos -> next[1];
+			return (*this);
 		}
 		/**
 		 * TODO iter--
 		 */
 		iterator operator--(int) {
 			node *op = pos;
-			pos = pos -> next[0];
-			return op;
+			pos = pos ? pos -> next[0] : from -> last();
+			return iterator(op, from);
 		}
 		/**
 		 * TODO --iter
 		 */
 		iterator & operator--() {
-			return pos = pos -> next[0];
+			pos = pos ? pos -> next[0] : from -> last();
+			return (*this);
 		}
 		/**
 		 * a operator to check whether two iterators are same (pointing to the same memory).
@@ -244,43 +269,45 @@ public:
 	class const_iterator {
 		// it should has similar member method as iterator.
 		//  and it should be able to construct from an iterator.
-		private:
+	public:
 			node *pos;
+			const map<Key, T, Compare> *from;
 		public:
 			const_iterator() {
 				// TODO
 			}
-			const_iterator(node *_pos) : pos(_pos) {}
-			const_iterator(const const_iterator &other) : pos(other.pos) {
-				// TODO
-			}
-			const_iterator(const iterator &other) : pos(other.pos) {
+			// const_iterator(node *_pos) : pos(_pos) {}
+			const_iterator(node *_pos, const map<Key, T, Compare> *_from) : pos(_pos), from(_from){}
+			const_iterator(const const_iterator &other) = default;
+			const_iterator(const iterator &other) : pos(other.pos), from(other.from) {
 				// TODO
 			}
 			const_iterator operator++(int) {
 				node *op = pos;
 				pos = pos -> next[1];
-				return op;
+				return const_iterator(op, from);
 			}
 			/**
 			 * TODO ++iter
 			 */
 			const_iterator & operator++() {
-				return pos = pos -> next[1];
+				pos = pos -> next[1];
+				return (*this);
 			}
 			/**
 			 * TODO iter--
 			 */
 			const_iterator operator--(int) {
 				node *op = pos;
-				pos = pos -> next[0];
-				return op;
+				pos = pos ? pos -> next[0] : from -> last();
+				return const_iterator(op, from);
 			}
 			/**
 			 * TODO --iter
 			 */
 			const_iterator & operator--() {
-				return pos = pos -> next[0];
+				pos = pos ? pos -> next[0] : from -> last();
+				return (*this);
 			}
 			/**
 			 * a operator to check whether two iterators are same (pointing to the same memory).
@@ -318,25 +345,25 @@ public:
 	 */
 	iterator begin() {
 		node *p = root;
-		if (p == NULL)  return iterator(p);
+		if (p == NULL)  return iterator(p, this);
 		while(p -> ch[0]) p = p -> ch[0];
-		return iterator(p);
+		return iterator(p, this);
 	}
 	const_iterator cbegin() const {
 		node *p = root;
-		if (p == NULL)  return const_iterator(p);
+		if (p == NULL)  return const_iterator(p, this);
 		while(p -> ch[0]) p = p -> ch[0];
-		return const_iterator(p);
+		return const_iterator(p, this);
 	}
 	/**
 	 * return a iterator to the end
 	 * in fact, it returns past-the-end.
 	 */
 	iterator end() {
-		return iterator(NULL);
+		return iterator(NULL, this);
 	}
 	const_iterator cend() const {
-		return const_iterator(NULL);
+		return const_iterator(NULL, this);
 	}
 
 	/**
@@ -346,18 +373,20 @@ public:
 		if (this == &o) return;
 		del(root);
 		for (auto i = o.cbegin(); i != o.cend(); ++i) {
-			insert(root, o -> first, o ->second);
+			std::cerr << "haha" << (i.pos) << std::endl;
+			insert(root, i -> first, i -> second);
 		}
 	}
 	map() : root(NULL) {}
-	map(const map &other) {
-		other.copy(other);
+	map(const map &other) : root(NULL) {
+		copy(other);
 	}
 	/**
 	 * TODO assignment operator
 	 */
 	map & operator=(const map &other) {
-		other.copy(other);
+		copy(other);
+		return (*this);
 	}
 	/**
 	 * TODO Destructors
@@ -384,6 +413,12 @@ public:
 	 *   performing an insertion if such key does not already exist.
 	 */
 	T & operator[](const Key &key) {
+		try{
+			at(key);
+		}
+		catch(...) {
+			insert(root, key, T());
+		}
 		return at(key);
 	}
 	/**
@@ -419,13 +454,15 @@ public:
 	 *   the second one is true if insert successfully, or false.
 	 */
 	pair<iterator, bool> insert(const value_type &value) {
-		insert(root, value.first, value.second);
+		auto tmp = insert(root, value.first, value.second);
+		return pair<iterator, bool>(iterator(tmp.first, this), tmp.second);
 	}
 	/**
 	 * erase the element at pos.
 	 *
 	 * throw if pos pointed to a bad element (pos == this->end() || pos points an element out of this)
 	 */
+
 	void find_erase(node *&x, const Key &key) {
 		if (Compare()(key, x -> value.first)) {
 			find_erase(x -> ch[0], key);
@@ -449,18 +486,18 @@ public:
 			else {
 				if (x -> ch[0] -> w > x -> ch[1] -> w) {
 					rotate(x, 1);
-					del(x -> ch[1], key);
+					find_erase(x -> ch[1], key);
 				}
 				else {
 					rotate(x, 0);
-					del(x -> ch[0], key);
+					find_erase(x -> ch[0], key);
 				}
 			}
 		}
 	}
 	void erase(iterator pos) {
 		try {
-			pos.pos -> ch[0];
+			pos -> first;
 		}
 		catch(...) {
 			throw invalid_iterator();
@@ -492,7 +529,7 @@ public:
 	 */
 	iterator find(const Key &key) {
 		try {
-			return iterator(query(root, key));
+			return iterator(query(root, key), this);
 		}
 		catch(...) {
 			return end();
@@ -500,7 +537,7 @@ public:
 	}
 	const_iterator find(const Key &key) const {
 		try {
-			return const_iterator(query(root, key));
+			return const_iterator(query(root, key), this);
 		}
 		catch(...) {
 			return cend();
