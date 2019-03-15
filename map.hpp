@@ -24,29 +24,18 @@ public:
 	static unsigned randU() {
 		return seed_now = seed_now * seed_a + seed_b;
 	}
-private:
 	typedef pair<const Key, T> value_type;
+private:
 	class node {
 	public:
 		node *ch[2], *next[2];
 		value_type value;
 		size_t siz;
 		unsigned w;
-		// node() : data(T()), siz(1) {
-		// 	// data = T();
-		// 	w = randU();
-		// 	ch[0] = ch[1] = NULL;
-		// }
 		node(const Key &k, const T &d) : value(value_type(k, d)), siz(1) {
 			w = randU();
 			next[0] = next[1] = ch[0] = ch[1] = NULL;
 		}
-		// node(const node &o) : value.first(o.value.first), value.second(o.value.second), siz(o.siz), w(o.w) {
-		// 	for (int i = 0; i < 2; ++i) {
-		// 		next[i] = o.next[i];
-		// 		if
-		// 	}
-		// }
 	};
 
 	node *root;
@@ -72,11 +61,9 @@ private:
 			x = new node(k, d);
 			return pair<node *, bool>(x, true);
 		}
-		// pair<node *, bool> tmp = pair<node *, bool>(NULL, true);
 		node *tmp1 = NULL;
 		bool tmp2 = true;
 		if (Compare()(k, x -> value.first)) {
-			// node *p = x -> ch[0];
 			auto tmp = insert(x -> ch[0], k, d);
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
@@ -94,7 +81,6 @@ private:
 			}
 		}
 		else if (Compare()(x -> value.first, k)) {
-			// node *p = x -> ch[1];
 			auto tmp = insert(x -> ch[1], k, d);
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
@@ -105,7 +91,7 @@ private:
 					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
 					x -> ch[1] -> next[0] = x;
 					x -> next[1] = x -> ch[1];
-				} 
+				}
 				if (flag && (x -> w < x -> ch[1] -> w)) {
 					rotate(x, 0);
 				}
@@ -131,21 +117,6 @@ private:
 			return x;
 		}
 	}
-	//
-	// const T &query(node *&x, const Key &k) {
-	// 	if (x == NULL) {
-	// 		throw index_out_of_bound();
-	// 	}
-	// 	if (Compare()(k, x -> value.first)) {
-	// 		return query(x -> ch[0], k);
-	// 	}
-	// 	else if (Compare()(x -> value.first, k)) {
-	// 		return query(x -> ch[1], k);
-	// 	}
-	// 	else {
-	// 		return x -> value.second;
-	// 	}
-	// }
 	void del(node *&x) {
 		if(x == NULL) return;
 		del(x -> ch[0]);
@@ -165,12 +136,6 @@ private:
 		while(p -> ch[1]) p = p -> ch[1];
 		return p;
 	}
-	// const_iterator clast() {
-	// 	node *p = root;
-	// 	if (p == NULL)  return iterator(p);
-	// 	while(p -> ch[1]) p = p -> ch[1];
-	// 	return iterator(p);
-	// }
 
 public:
 	/**
@@ -186,6 +151,8 @@ public:
 	 *       or it = map.end(); ++end();
 	 */
 	class iterator {
+		friend class const_iterator;
+		friend void map::erase(iterator);
 	private:
 		node *pos;
 		const map<Key, T, Compare> *from;
@@ -240,22 +207,22 @@ public:
 		 * a operator to check whether two iterators are same (pointing to the same memory).
 		 */
 		value_type & operator*() const { //why can this function be const
-			return value_type(pos -> value.first, pos -> value.second);
+			return pos -> value;
 		}
 		bool operator==(const iterator &rhs) const {
-			return pos == rhs.pos;
+			return pos == rhs.pos && from == rhs.from;
 		}
 		bool operator==(const const_iterator &rhs) const {
-			return pos == rhs.pos;
+			return pos == rhs.pos && from == rhs.from;
 		}
 		/**
 		 * some other operator for iterator.
 		 */
 		bool operator!=(const iterator &rhs) const {
-			return pos != rhs.pos;
+			return pos != rhs.pos || from != rhs.from;
 		}
 		bool operator!=(const const_iterator &rhs) const {
-			return pos != rhs.pos;
+			return pos != rhs.pos || from != rhs.from;
 		}
 
 		/**
@@ -267,16 +234,16 @@ public:
 		}
 	};
 	class const_iterator {
+		friend class iterator;
 		// it should has similar member method as iterator.
 		//  and it should be able to construct from an iterator.
-	public:
+	private:
 			node *pos;
 			const map<Key, T, Compare> *from;
 		public:
 			const_iterator() {
 				// TODO
 			}
-			// const_iterator(node *_pos) : pos(_pos) {}
 			const_iterator(node *_pos, const map<Key, T, Compare> *_from) : pos(_pos), from(_from){}
 			const_iterator(const const_iterator &other) = default;
 			const_iterator(const iterator &other) : pos(other.pos), from(other.from) {
@@ -313,22 +280,22 @@ public:
 			 * a operator to check whether two iterators are same (pointing to the same memory).
 			 */
 			const value_type & operator*() const {
-				return value_type(pos -> value.first, pos -> value.second);
+				return pos -> value;
 			}
 			bool operator==(const iterator &rhs) const {
-				return pos == rhs.pos;
+				return pos == rhs.pos && from == rhs.from;
 			}
 			bool operator==(const const_iterator &rhs) const {
-				return pos == rhs.pos;
+				return pos == rhs.pos && from == rhs.from;
 			}
 			/**
 			 * some other operator for iterator.
 			 */
 			bool operator!=(const iterator &rhs) const {
-				return pos != rhs.pos;
+				return pos != rhs.pos || from != rhs.from;
 			}
 			bool operator!=(const const_iterator &rhs) const {
-				return pos != rhs.pos;
+				return pos != rhs.pos || from != rhs.from;
 			}
 
 			/**
@@ -373,7 +340,6 @@ public:
 		if (this == &o) return;
 		del(root);
 		for (auto i = o.cbegin(); i != o.cend(); ++i) {
-			// std::cerr << "haha" << (i.pos) << std::endl;
 			insert(root, i -> first, i -> second);
 		}
 	}
@@ -474,11 +440,15 @@ public:
 		}
 		else {
 			if (x -> ch[0] == NULL) {
+				if (x -> next[0]) x -> next[0] -> next[1] = x -> next[1];
+				if (x -> next[1]) x -> next[1] -> next[0] = x -> next[0];
 				node *tmp = x;
 				x = x -> ch[1];
 				delete tmp;
 			}
 			else if (x -> ch[1] == NULL) {
+				if (x -> next[0]) x -> next[0] -> next[1] = x -> next[1];
+				if (x -> next[1]) x -> next[1] -> next[0] = x -> next[0];
 				node *tmp = x;
 				x = x -> ch[0];
 				delete tmp;
@@ -492,17 +462,12 @@ public:
 					rotate(x, 0);
 					find_erase(x -> ch[0], key);
 				}
+				update(x);
 			}
 		}
 	}
 	void erase(iterator pos) {
-		try {
-			pos -> first;
-		}
-		catch(...) {
-			throw invalid_iterator();
-		}
-		// node *p = pos.pos;
+		if (pos.pos == NULL || pos.from != this) throw invalid_iterator();
 		find_erase(root, pos -> first);
 	}
 	/**
