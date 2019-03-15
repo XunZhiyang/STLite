@@ -39,7 +39,7 @@ private:
 		// }
 		node(const Key &k, const T &d) : value(value_type(k, d)), siz(1) {
 			w = randU();
-			ch[0] = ch[1] = NULL;
+			next[0] = next[1] = ch[0] = ch[1] = NULL;
 		}
 		// node(const node &o) : value.first(o.value.first), value.second(o.value.second), siz(o.siz), w(o.w) {
 		// 	for (int i = 0; i < 2; ++i) {
@@ -59,7 +59,7 @@ private:
 
 	void rotate(node *&x, int d) {
 		node *tmp = x -> ch[d ^ 1];
-		x -> ch[d ^ 1] = x ->ch[d ^ 1] -> ch[d];
+		x -> ch[d ^ 1] = x -> ch[d ^ 1] -> ch[d];
 		tmp -> ch[d] = x;
 		update(x);
 		x = tmp;
@@ -82,13 +82,13 @@ private:
 			tmp2 = tmp.second;
 			if (tmp.second) {
 				update(x);
-				if (tmp.first == x -> ch[0]) {
+				if (tmp.first -> next[1] == NULL) {
 					x -> ch[0] -> next[0] = x -> next[0];
 					if (x -> next[0]) x -> next[0] -> next[1] = x -> ch[0];
 					x -> ch[0] -> next[1] = x;
 					x -> next[0] = x -> ch[0];
 				}
-				if (flag && Compare()(x -> w, x -> ch[0] -> w)) {
+				if (flag && (x -> w < x -> ch[0] -> w)) {
 					rotate(x, 1);
 				}
 			}
@@ -100,13 +100,13 @@ private:
 			tmp2 = tmp.second;
 			if (tmp.second) {
 				update(x);
-				if (tmp.first == x -> ch[1]) {
+				if (tmp.first -> next[0] == NULL) {
 					x -> ch[1] -> next[1] = x -> next[1];
 					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
 					x -> ch[1] -> next[0] = x;
 					x -> next[1] = x -> ch[1];
-				}
-				if (flag && Compare() (x -> w, x -> ch[1] -> w)) {
+				} 
+				if (flag && (x -> w < x -> ch[1] -> w)) {
 					rotate(x, 0);
 				}
 			}
@@ -373,7 +373,7 @@ public:
 		if (this == &o) return;
 		del(root);
 		for (auto i = o.cbegin(); i != o.cend(); ++i) {
-			std::cerr << "haha" << (i.pos) << std::endl;
+			// std::cerr << "haha" << (i.pos) << std::endl;
 			insert(root, i -> first, i -> second);
 		}
 	}
