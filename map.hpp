@@ -177,6 +177,7 @@ public:
 		 * TODO iter++
 		 */
 		iterator operator++(int) {
+			if (pos == NULL) throw invalid_iterator();
 			node *op = pos;
 			pos = pos -> next[1];
 			return iterator(op, from);
@@ -185,6 +186,7 @@ public:
 		 * TODO ++iter
 		 */
 		iterator & operator++() {
+			if (pos == NULL) throw invalid_iterator();
 			pos = pos -> next[1];
 			return (*this);
 		}
@@ -194,6 +196,7 @@ public:
 		iterator operator--(int) {
 			node *op = pos;
 			pos = pos ? pos -> next[0] : from -> last();
+			if (pos == NULL) throw invalid_iterator();
 			return iterator(op, from);
 		}
 		/**
@@ -201,6 +204,7 @@ public:
 		 */
 		iterator & operator--() {
 			pos = pos ? pos -> next[0] : from -> last();
+			if (pos == NULL) throw invalid_iterator();
 			return (*this);
 		}
 		/**
@@ -250,6 +254,7 @@ public:
 				// TODO
 			}
 			const_iterator operator++(int) {
+				if (pos == NULL) throw invalid_iterator();
 				node *op = pos;
 				pos = pos -> next[1];
 				return const_iterator(op, from);
@@ -258,6 +263,7 @@ public:
 			 * TODO ++iter
 			 */
 			const_iterator & operator++() {
+				if (pos == NULL) throw invalid_iterator();
 				pos = pos -> next[1];
 				return (*this);
 			}
@@ -267,6 +273,7 @@ public:
 			const_iterator operator--(int) {
 				node *op = pos;
 				pos = pos ? pos -> next[0] : from -> last();
+				if (pos == NULL) throw invalid_iterator();
 				return const_iterator(op, from);
 			}
 			/**
@@ -274,6 +281,7 @@ public:
 			 */
 			const_iterator & operator--() {
 				pos = pos ? pos -> next[0] : from -> last();
+				if (pos == NULL) throw invalid_iterator();
 				return (*this);
 			}
 			/**
