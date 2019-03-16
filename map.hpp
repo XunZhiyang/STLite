@@ -65,7 +65,7 @@ private:
 		node *tmp1 = NULL;
 		bool tmp2 = true;
 		if (cmp(k, x -> value.first)) {
-			auto tmp = insert(x -> ch[0], k, d);
+			pair<node *, bool> tmp = insert(x -> ch[0], k, d);
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
@@ -82,7 +82,7 @@ private:
 			}
 		}
 		else if (cmp(x -> value.first, k)) {
-			auto tmp = insert(x -> ch[1], k, d);
+			pair<node *, bool> tmp = insert(x -> ch[1], k, d);
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
@@ -127,7 +127,7 @@ private:
 		node *tmp1 = NULL;
 		bool tmp2 = true;
 		if (cmp(k, x -> value.first)) {
-			auto tmp = locate(x -> ch[0], k);
+			pair<node *, bool> tmp = locate(x -> ch[0], k);
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
@@ -144,7 +144,7 @@ private:
 			}
 		}
 		else if (cmp(x -> value.first, k)) {
-			auto tmp = locate(x -> ch[1], k);
+			pair<node *, bool> tmp = locate(x -> ch[1], k);
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
@@ -397,7 +397,7 @@ public:
 	void copy(const map &o) {
 		if (this == &o) return;
 		del(root);
-		for (auto i = o.cbegin(); i != o.cend(); ++i) {
+		for (const_iterator i = o.cbegin(); i != o.cend(); ++i) {
 			insert(root, i -> first, i -> second);
 		}
 	}
@@ -472,7 +472,7 @@ public:
 	 *   the second one is true if insert successfully, or false.
 	 */
 	pair<iterator, bool> insert(const value_type &value) {
-		auto tmp = insert(root, value.first, value.second);
+		pair<node *, bool> tmp = insert(root, value.first, value.second);
 		return pair<iterator, bool>(iterator(tmp.first, this), tmp.second);
 	}
 	/**
