@@ -58,7 +58,6 @@ private:
 	}
 
 	pair<node *, bool> insert(node *&x, const Key &k, const T &d) {
-		bool flag = true;
 		if (x == NULL) {
 			x = new node(k, d);
 			return pair<node *, bool>(x, true);
@@ -77,7 +76,7 @@ private:
 					x -> ch[0] -> next[1] = x;
 					x -> next[0] = x -> ch[0];
 				}
-				if (flag && (x -> w < x -> ch[0] -> w)) {
+				if (x -> w < x -> ch[0] -> w) {
 					rotate(x, 1);
 				}
 			}
@@ -94,7 +93,7 @@ private:
 					x -> ch[1] -> next[0] = x;
 					x -> next[1] = x -> ch[1];
 				}
-				if (flag && (x -> w < x -> ch[1] -> w)) {
+				if (x -> w < x -> ch[1] -> w) {
 					rotate(x, 0);
 				}
 			}
@@ -121,7 +120,6 @@ private:
 	}
 
 	pair<node *, bool> locate(node *&x, const Key &k) {
-		bool flag = true;
 		if (x == NULL) {
 			x = new node(k, T());
 			return pair<node *, bool>(x, true);
@@ -140,7 +138,7 @@ private:
 					x -> ch[0] -> next[1] = x;
 					x -> next[0] = x -> ch[0];
 				}
-				if (flag && (x -> w < x -> ch[0] -> w)) {
+				if (x -> w < x -> ch[0] -> w) {
 					rotate(x, 1);
 				}
 			}
@@ -157,7 +155,7 @@ private:
 					x -> ch[1] -> next[0] = x;
 					x -> next[1] = x -> ch[1];
 				}
-				if (flag && (x -> w < x -> ch[1] -> w)) {
+				if (x -> w < x -> ch[1] -> w) {
 					rotate(x, 0);
 				}
 			}
