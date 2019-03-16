@@ -26,6 +26,8 @@ public:
 	}
 	typedef pair<const Key, T> value_type;
 private:
+	Compare cmp;
+
 	class node {
 	public:
 		node *ch[2], *next[2];
@@ -63,7 +65,7 @@ private:
 		}
 		node *tmp1 = NULL;
 		bool tmp2 = true;
-		if (Compare()(k, x -> value.first)) {
+		if (cmp(k, x -> value.first)) {
 			auto tmp = insert(x -> ch[0], k, d);
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
@@ -80,7 +82,7 @@ private:
 				}
 			}
 		}
-		else if (Compare()(x -> value.first, k)) {
+		else if (cmp(x -> value.first, k)) {
 			auto tmp = insert(x -> ch[1], k, d);
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
@@ -107,16 +109,66 @@ private:
 		if (x == NULL) {
 			throw index_out_of_bound();
 		}
-		if (Compare()(k, x -> value.first)) {
+		if (cmp(k, x -> value.first)) {
 			return query(x -> ch[0], k);
 		}
-		else if (Compare()(x -> value.first, k)) {
+		else if (cmp(x -> value.first, k)) {
 			return query(x -> ch[1], k);
 		}
 		else {
 			return x;
 		}
 	}
+
+	pair<node *, bool> locate(node *&x, const Key &k) {
+		bool flag = true;
+		if (x == NULL) {
+			x = new node(k, T());
+			return pair<node *, bool>(x, true);
+		}
+		node *tmp1 = NULL;
+		bool tmp2 = true;
+		if (cmp(k, x -> value.first)) {
+			auto tmp = locate(x -> ch[0], k);
+			tmp1 = tmp.first;
+			tmp2 = tmp.second;
+			if (tmp.second) {
+				update(x);
+				if (tmp.first -> next[1] == NULL) {
+					x -> ch[0] -> next[0] = x -> next[0];
+					if (x -> next[0]) x -> next[0] -> next[1] = x -> ch[0];
+					x -> ch[0] -> next[1] = x;
+					x -> next[0] = x -> ch[0];
+				}
+				if (flag && (x -> w < x -> ch[0] -> w)) {
+					rotate(x, 1);
+				}
+			}
+		}
+		else if (cmp(x -> value.first, k)) {
+			auto tmp = locate(x -> ch[1], k);
+			tmp1 = tmp.first;
+			tmp2 = tmp.second;
+			if (tmp.second) {
+				update(x);
+				if (tmp.first -> next[0] == NULL) {
+					x -> ch[1] -> next[1] = x -> next[1];
+					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
+					x -> ch[1] -> next[0] = x;
+					x -> next[1] = x -> ch[1];
+				}
+				if (flag && (x -> w < x -> ch[1] -> w)) {
+					rotate(x, 0);
+				}
+			}
+		}
+		else {
+			return pair<node *, bool>(x, false);
+		}
+		return pair<node *, bool>(tmp1, tmp2);
+	}
+
+
 	void del(node *&x) {
 		if(x == NULL) return;
 		del(x -> ch[0]);
@@ -387,13 +439,7 @@ public:
 	 *   performing an insertion if such key does not already exist.
 	 */
 	T & operator[](const Key &key) {
-		try{
-			at(key);
-		}
-		catch(...) {
-			insert(root, key, T());
-		}
-		return at(key);
+		return locate(root, key).first -> value.second;
 	}
 	/**
 	 * behave like at() throw index_out_of_bound if such key does not exist.
@@ -438,11 +484,11 @@ public:
 	 */
 
 	void find_erase(node *&x, const Key &key) {
-		if (Compare()(key, x -> value.first)) {
+		if (cmp(key, x -> value.first)) {
 			find_erase(x -> ch[0], key);
 			update(x);
 		}
-		else if (Compare()(x -> value.first, key)) {
+		else if (cmp(x -> value.first, key)) {
 			find_erase(x -> ch[1], key);
 			update(x);
 		}
