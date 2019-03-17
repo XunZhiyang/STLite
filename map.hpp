@@ -389,13 +389,14 @@ public:
 		}
 	}
 	map() : root(NULL), siz(0) {}
-	map(const map &other) : siz(other.siz) {
+	map(const map &other) : root(NULL), siz(other.siz) {
 		copy(other);
 	}
 	/**
 	 * TODO assignment operator
 	 */
 	map & operator=(const map &other) {
+		siz = other.siz;
 		copy(other);
 		return (*this);
 	}
