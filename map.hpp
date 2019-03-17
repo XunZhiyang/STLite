@@ -27,14 +27,13 @@ public:
 	typedef pair<const Key, T> value_type;
 private:
 	Compare cmp;
-
+	size_t siz;
 	class node {
 	public:
 		node *ch[2], *next[2];
 		value_type value;
-		size_t siz;
 		unsigned w;
-		node(const Key &k, const T &d) : value(value_type(k, d)), siz(1) {
+		node(const Key &k, const T &d) : value(value_type(k, d)) {
 			w = randU();
 			next[0] = next[1] = ch[0] = ch[1] = NULL;
 		}
@@ -42,19 +41,11 @@ private:
 
 	node *root;
 
-	void update(node *&x) {
-		x -> siz = 1;
-		x -> siz += x -> ch[0] ? x -> ch[0] -> siz : 0;
-		x -> siz += x -> ch[1] ? x -> ch[1] -> siz : 0;
-	}
-
 	void rotate(node *&x, int d) {
 		node *tmp = x -> ch[d ^ 1];
 		x -> ch[d ^ 1] = x -> ch[d ^ 1] -> ch[d];
 		tmp -> ch[d] = x;
-		update(x);
 		x = tmp;
-		update(x);
 	}
 
 	pair<node *, bool> insert(node *&x, const Key &k, const T &d) {
@@ -69,7 +60,6 @@ private:
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
-				update(x);
 				if (tmp.first -> next[1] == NULL) {
 					x -> ch[0] -> next[0] = x -> next[0];
 					if (x -> next[0]) x -> next[0] -> next[1] = x -> ch[0];
@@ -86,7 +76,6 @@ private:
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
-				update(x);
 				if (tmp.first -> next[0] == NULL) {
 					x -> ch[1] -> next[1] = x -> next[1];
 					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
@@ -131,7 +120,6 @@ private:
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
-				update(x);
 				if (tmp.first -> next[1] == NULL) {
 					x -> ch[0] -> next[0] = x -> next[0];
 					if (x -> next[0]) x -> next[0] -> next[1] = x -> ch[0];
@@ -148,7 +136,6 @@ private:
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
-				update(x);
 				if (tmp.first -> next[0] == NULL) {
 					x -> ch[1] -> next[1] = x -> next[1];
 					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
@@ -401,8 +388,8 @@ public:
 			insert(root, i -> first, i -> second);
 		}
 	}
-	map() : root(NULL) {}
-	map(const map &other) : root(NULL) {
+	map() : root(NULL), siz(0) {}
+	map(const map &other) : root(NULL), siz(other.siz) {
 		copy(other);
 	}
 	/**
@@ -437,7 +424,9 @@ public:
 	 *   performing an insertion if such key does not already exist.
 	 */
 	T & operator[](const Key &key) {
-		return locate(root, key).first -> value.second;
+		pair<node *, bool> &&tmp = locate(root, key);
+		siz += tmp.second ? 1 : 0;
+		return tmp.first -> value.second;
 	}
 	/**
 	 * behave like at() throw index_out_of_bound if such key does not exist.
@@ -457,12 +446,13 @@ public:
 	 * returns the number of elements.
 	 */
 	size_t size() const {
-		return root == NULL ? 0 : root -> siz;
+		return siz;
 	}
 	/**
 	 * clears the contents
 	 */
 	void clear() {
+		siz = 0;
 		del(root);
 	}
 	/**
@@ -472,7 +462,8 @@ public:
 	 *   the second one is true if insert successfully, or false.
 	 */
 	pair<iterator, bool> insert(const value_type &value) {
-		pair<node *, bool> tmp = insert(root, value.first, value.second);
+		pair<node *, bool> &&tmp = insert(root, value.first, value.second);
+		siz += tmp.second ? 1 : 0;
 		return pair<iterator, bool>(iterator(tmp.first, this), tmp.second);
 	}
 	/**
@@ -484,11 +475,9 @@ public:
 	void find_erase(node *&x, const Key &key) {
 		if (cmp(key, x -> value.first)) {
 			find_erase(x -> ch[0], key);
-			update(x);
 		}
 		else if (cmp(x -> value.first, key)) {
 			find_erase(x -> ch[1], key);
-			update(x);
 		}
 		else {
 			if (x -> ch[0] == NULL) {
@@ -514,12 +503,12 @@ public:
 					rotate(x, 0);
 					find_erase(x -> ch[0], key);
 				}
-				update(x);
 			}
 		}
 	}
 	void erase(iterator pos) {
 		if (pos.pos == NULL || pos.from != this) throw invalid_iterator();
+		--siz;
 		find_erase(root, pos -> first);
 	}
 	/**
