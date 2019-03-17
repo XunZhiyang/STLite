@@ -389,7 +389,7 @@ public:
 		}
 	}
 	map() : root(NULL), siz(0) {}
-	map(const map &other) : root(NULL), siz(other.siz) {
+	map(const map &other) : siz(other.siz) {
 		copy(other);
 	}
 	/**
