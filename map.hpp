@@ -19,9 +19,9 @@ template<
 	class Compare = std::less<Key>
 > class map {
 public:
-	static unsigned long long seed_a, seed_b, seed_now;
+	static unsigned seed_a, seed_b, seed_now;
 public:
-	static unsigned long long randU() {
+	static unsigned randU() {
 		return seed_now = seed_now * seed_a + seed_b;
 	}
 	typedef pair<const Key, T> value_type;
@@ -32,7 +32,7 @@ private:
 	public:
 		node *ch[2], *next[2];
 		value_type value;
-		unsigned long long w;
+		unsigned w;
 		node(const Key &k, const T &d) : value(value_type(k, d)) {
 			w = randU();
 			next[0] = next[1] = ch[0] = ch[1] = NULL;
@@ -53,43 +53,59 @@ private:
 			x = new node(k, d);
 			return pair<node *, bool>(x, true);
 		}
-		bool cmp0 = cmp(k, x -> value.first);
-		bool cmp1 = cmp(x -> value.first, k);
-		if(!(cmp0 || cmp1))
-			return pair<node *, bool>(x, false);
-		pair<node *, bool> tmp = insert(x -> ch[cmp1], k, d);
-		if (tmp.second) {
-			if (tmp.first -> next[cmp1 ^ 1] == NULL) {
-				x -> ch[cmp1] -> next[cmp1] = x -> next[cmp1];
-				if (x -> next[cmp1]) x -> next[cmp1] -> next[cmp1 ^ 1] = x -> ch[cmp1];
-				x -> ch[cmp1] -> next[cmp1 ^ 1] = x;
-				x -> next[cmp1] = x -> ch[cmp1];
-			}
-			if (x -> w < x -> ch[cmp1] -> w) {
-				rotate(x, cmp1 ^ 1);
+		node *tmp1 = NULL;
+		bool tmp2 = true;
+		if (cmp(k, x -> value.first)) {
+			pair<node *, bool> tmp = insert(x -> ch[0], k, d);
+			tmp1 = tmp.first;
+			tmp2 = tmp.second;
+			if (tmp.second) {
+				if (tmp.first -> next[1] == NULL) {
+					x -> ch[0] -> next[0] = x -> next[0];
+					if (x -> next[0]) x -> next[0] -> next[1] = x -> ch[0];
+					x -> ch[0] -> next[1] = x;
+					x -> next[0] = x -> ch[0];
+				}
+				if (x -> w < x -> ch[0] -> w) {
+					rotate(x, 1);
+				}
 			}
 		}
-		return tmp;
+		else if (cmp(x -> value.first, k)) {
+			pair<node *, bool> tmp = insert(x -> ch[1], k, d);
+			tmp1 = tmp.first;
+			tmp2 = tmp.second;
+			if (tmp.second) {
+				if (tmp.first -> next[0] == NULL) {
+					x -> ch[1] -> next[1] = x -> next[1];
+					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
+					x -> ch[1] -> next[0] = x;
+					x -> next[1] = x -> ch[1];
+				}
+				if (x -> w < x -> ch[1] -> w) {
+					rotate(x, 0);
+				}
+			}
+		}
+		else {
+			return pair<node *, bool>(x, false);
+		}
+		return pair<node *, bool>(tmp1, tmp2);
 	}
 
 	node *query(node * const &x, const Key &k) const{
 		if (x == NULL) {
 			throw index_out_of_bound();
 		}
-		bool cmp0 = cmp(k, x -> value.first);
-		bool cmp1 = cmp(x -> value.first, k);
-		if(!(cmp0 || cmp1))
+		if (cmp(k, x -> value.first)) {
+			return query(x -> ch[0], k);
+		}
+		else if (cmp(x -> value.first, k)) {
+			return query(x -> ch[1], k);
+		}
+		else {
 			return x;
-		return query(x -> ch[cmp1], k);
-		// if (cmp(k, x -> value.first)) {
-		// 	return query(x -> ch[0], k);
-		// }
-		// else if (cmp(x -> value.first, k)) {
-		// 	return query(x -> ch[1], k);
-		// }
-		// else {
-		// 	return x;
-		// }
+		}
 	}
 
 	pair<node *, bool> locate(node *&x, const Key &k) {
@@ -97,23 +113,44 @@ private:
 			x = new node(k, T());
 			return pair<node *, bool>(x, true);
 		}
-		bool cmp0 = cmp(k, x -> value.first);
-		bool cmp1 = cmp(x -> value.first, k);
-		if(!(cmp0 || cmp1))
-			return pair<node *, bool>(x, false);
-		pair<node *, bool> tmp = locate(x -> ch[cmp1], k);
-		if (tmp.second) {
-			if (tmp.first -> next[cmp1 ^ 1] == NULL) {
-				x -> ch[cmp1] -> next[cmp1] = x -> next[cmp1];
-				if (x -> next[cmp1]) x -> next[cmp1] -> next[cmp1 ^ 1] = x -> ch[cmp1];
-				x -> ch[cmp1] -> next[cmp1 ^ 1] = x;
-				x -> next[cmp1] = x -> ch[cmp1];
-			}
-			if (x -> w < x -> ch[cmp1] -> w) {
-				rotate(x, cmp1 ^ 1);
+		node *tmp1 = NULL;
+		bool tmp2 = true;
+		if (cmp(k, x -> value.first)) {
+			pair<node *, bool> tmp = locate(x -> ch[0], k);
+			tmp1 = tmp.first;
+			tmp2 = tmp.second;
+			if (tmp.second) {
+				if (tmp.first -> next[1] == NULL) {
+					x -> ch[0] -> next[0] = x -> next[0];
+					if (x -> next[0]) x -> next[0] -> next[1] = x -> ch[0];
+					x -> ch[0] -> next[1] = x;
+					x -> next[0] = x -> ch[0];
+				}
+				if (x -> w < x -> ch[0] -> w) {
+					rotate(x, 1);
+				}
 			}
 		}
-		return tmp;
+		else if (cmp(x -> value.first, k)) {
+			pair<node *, bool> tmp = locate(x -> ch[1], k);
+			tmp1 = tmp.first;
+			tmp2 = tmp.second;
+			if (tmp.second) {
+				if (tmp.first -> next[0] == NULL) {
+					x -> ch[1] -> next[1] = x -> next[1];
+					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
+					x -> ch[1] -> next[0] = x;
+					x -> next[1] = x -> ch[1];
+				}
+				if (x -> w < x -> ch[1] -> w) {
+					rotate(x, 0);
+				}
+			}
+		}
+		else {
+			return pair<node *, bool>(x, false);
+		}
+		return pair<node *, bool>(tmp1, tmp2);
 	}
 
 
@@ -351,8 +388,8 @@ public:
 			insert(root, i -> first, i -> second);
 		}
 	}
-	map() : siz(0), root(NULL) {}
-	map(const map &other) :  siz(other.siz), root(NULL) {
+	map() : root(NULL), siz(0) {}
+	map(const map &other) : root(NULL), siz(other.siz) {
 		copy(other);
 	}
 	/**
@@ -515,11 +552,11 @@ public:
 	}
 };
 template<class Key, class T, class Compare>
-unsigned long long map<Key, T, Compare>::seed_a = 69069;
+unsigned map<Key, T, Compare>::seed_a = 69069;
 template<class Key, class T, class Compare>
-unsigned long long map<Key, T, Compare>::seed_b = 1;
+unsigned map<Key, T, Compare>::seed_b = 1;
 template<class Key, class T, class Compare>
-unsigned long long map<Key, T, Compare>::seed_now = 0;
+unsigned map<Key, T, Compare>::seed_now = 1;
 
 }
 
