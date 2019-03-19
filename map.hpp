@@ -19,9 +19,9 @@ template<
 	class Compare = std::less<Key>
 > class map {
 public:
-	static unsigned seed_a, seed_b, seed_now;
+	static unsigned long long seed_a, seed_b, seed_now;
 public:
-	static unsigned randU() {
+	static unsigned long long randU() {
 		return seed_now = seed_now * seed_a + seed_b;
 	}
 	typedef pair<const Key, T> value_type;
@@ -32,7 +32,7 @@ private:
 	public:
 		node *ch[2], *next[2];
 		value_type value;
-		unsigned w;
+		unsigned long long w;
 		node(const Key &k, const T &d) : value(value_type(k, d)) {
 			w = randU();
 			next[0] = next[1] = ch[0] = ch[1] = NULL;
@@ -515,11 +515,11 @@ public:
 	}
 };
 template<class Key, class T, class Compare>
-unsigned map<Key, T, Compare>::seed_a = 69069;
+unsigned long long map<Key, T, Compare>::seed_a = 69069;
 template<class Key, class T, class Compare>
-unsigned map<Key, T, Compare>::seed_b = 1;
+unsigned long long map<Key, T, Compare>::seed_b = 1;
 template<class Key, class T, class Compare>
-unsigned map<Key, T, Compare>::seed_now = 1;
+unsigned long long map<Key, T, Compare>::seed_now = 0;
 
 }
 
