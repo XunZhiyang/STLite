@@ -165,17 +165,16 @@ public:
 		LLNode *now;
 		size_t pos;
 		Node *blo;
-		deque<T> *ori;
+		const deque<T> *ori;
 	public:
 		/**
 		 * return a new iterator which pointer n-next elements
 		 *   even if there are not enough elements, the behaviour is **undefined**.
 		 * as well as operator-
 		 */
-		iterator(LLNode *_now, size_t _pos, Node *_blo, deque<T> *_ori) : now(_now), pos(_pos), blo(_blo), ori(_ori) {}
+		iterator(LLNode *_now, size_t _pos, Node *_blo, const deque<T> *_ori) : now(_now), pos(_pos), blo(_blo), ori(_ori) {}
 		iterator() = default;
 		iterator(const iterator &other) = default;
-		iterator operator-(const int&);
 		iterator operator+(const int &n) const {
 			if (n < 0) return operator-(-n);
 			iterator np(*this);
@@ -331,10 +330,10 @@ public:
 			LLNode *now;
 			size_t pos;
 			Node *blo;
-			deque<T> *ori;
+			const deque<T> *ori;
 		public:
 
-   			const_iterator(LLNode *_now, size_t _pos, Node *_blo, deque<T> *_ori) : now(_now), pos(_pos), blo(_blo), ori(_ori) {}
+   			const_iterator(LLNode *_now, size_t _pos, Node *_blo, const deque<T> *_ori) : now(_now), pos(_pos), blo(_blo), ori(_ori) {}
 			const_iterator() = default;
 			const_iterator(const iterator &other) : now(other.now), pos(other.pos), blo(other.blo), ori(other.ori) {}
 			const_iterator(const const_iterator &other) = default;
@@ -481,10 +480,10 @@ public:
 			}
 	};
 private:
-	iterator last() {
+	iterator last() const{
 		return siz ? iterator(tail -> tail, tail -> size, tail, this) : end();
 	}
-	const_iterator clast() {
+	const_iterator clast() const{
 		return siz ? iterator(tail -> tail, tail -> size, tail, this) : end();
 	}
 public:
@@ -546,18 +545,18 @@ public:
 	/**
 	 * returns an iterator to the beginning.
 	 */
-	iterator begin() {
+	iterator begin() const{
 		if(empty()) return end();
 		return iterator(head -> head, 1, head, this);
 	}
 	const_iterator cbegin() const {
 		if(empty()) return cend();
-		return {head -> head, 1, head, this};
+		return const_iterator(head -> head, 1, head, this);
 	}
 	/**
 	 * returns an iterator to the end.
 	 */
-	iterator end() {
+	iterator end() const{
 		return {nullptr, 0, nullptr, this};
 	}
 	const_iterator cend() const {
