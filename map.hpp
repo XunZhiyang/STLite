@@ -18,6 +18,39 @@ template<
 	class T,
 	class Compare = std::less<Key>
 > class map {
+	class node;
+	class Linklist {
+		struct LLnode {
+			node *data;
+			LLnode *next;
+			LLnode() : LLnode(nullptr) {}
+			LLnode(const node *&_data) : data(_data), next(nullptr) {}
+		}
+	public:
+		LLnode *head, *tail;
+		Linklist() : {
+			head = tail = new LLnode;
+		}
+		void push_back(const node *&p) {
+			tail -> next = new LLnode(p);
+			tail = tail -> next;
+		}
+		~Linklist() {
+			LLnode *p = head -> next;
+			delete head;
+			if (!p) return;
+			head = p;
+			p = p -> next;
+			while (p) {
+				delete head -> data;
+				delete head;
+				head = p;
+				p = p -> next;
+			}
+			delete head -> data;
+			delete head;
+		}
+	}
 public:
 	static unsigned seed_a, seed_b, seed_now;
 public:
@@ -26,6 +59,7 @@ public:
 	}
 	typedef pair<const Key, T> value_type;
 private:
+	Linklist delQ;
 	Compare cmp;
 	size_t siz;
 	class node {
@@ -158,7 +192,7 @@ private:
 		if(x == NULL) return;
 		del(x -> ch[0]);
 		del(x -> ch[1]);
-		delete x;
+		delQ.push_back(x);
 		x = NULL;
 	}
 
@@ -486,14 +520,14 @@ public:
 				if (x -> next[1]) x -> next[1] -> next[0] = x -> next[0];
 				node *tmp = x;
 				x = x -> ch[1];
-				delete tmp;
+				delQ.push_back(tmp);
 			}
 			else if (x -> ch[1] == NULL) {
 				if (x -> next[0]) x -> next[0] -> next[1] = x -> next[1];
 				if (x -> next[1]) x -> next[1] -> next[0] = x -> next[0];
 				node *tmp = x;
 				x = x -> ch[0];
-				delete tmp;
+				delQ.push_back(tmp);
 			}
 			else {
 				if (x -> ch[0] -> w > x -> ch[1] -> w) {
