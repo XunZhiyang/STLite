@@ -19,38 +19,65 @@ template<
 	class Compare = std::less<Key>
 > class map {
 	class node;
-	class Linklist {
-		struct LLnode {
-			node *data;
-			LLnode *next;
-			LLnode() : LLnode(nullptr) {}
-			LLnode(const node *&_data) : data(_data), next(nullptr) {}
+	// class Linklist {
+	// 	struct LLnode {
+	// 		node *data;
+	// 		LLnode *next;
+	// 		LLnode() : LLnode(nullptr) {}
+	// 		LLnode(node * const &_data) : data(_data), next(nullptr) {}
+	// 	};
+	// public:
+	// 	LLnode *head, *tail;
+	// 	Linklist() {
+	// 		head = tail = new LLnode;
+	// 	}
+	// 	void push_back(node * const &p) {
+	// 		tail -> next = new LLnode(p);
+	// 		tail = tail -> next;
+	// 	}
+	// 	~Linklist() {
+	// 		LLnode *p = head -> next;
+	// 		delete head;
+	// 		if (!p) return;
+	// 		head = p;
+	// 		p = p -> next;
+	// 		while (p) {
+	// 			delete head -> data;
+	// 			delete head;
+	// 			head = p;
+	// 			p = p -> next;
+	// 		}
+	// 		delete head -> data;
+	// 		delete head;
+	// 	}
+	// };
+    class vector {
+    private:
+        int siz;
+		int tail;
+        node **head;
+        void doubleSpace() {
+            node **nhead = new node*[siz << 1];
+            for (int i = 0; i < siz; ++i) {
+                nhead[i] = head[i];
+            }
+            delete []head;
+            head = nhead;
+            siz <<= 1;
+        }
+    public:
+        vector() : siz(128), tail(0) {
+            head = new node*[128];
+        }
+		void push_back(node * const &p) {
+			if (tail == siz) doubleSpace();
+			head[tail++] = p;
 		}
-	public:
-		LLnode *head, *tail;
-		Linklist() : {
-			head = tail = new LLnode;
+		~vector() {
+			for (int i = 0; i < tail; ++i) delete head[i];
+			delete []head;
 		}
-		void push_back(const node *&p) {
-			tail -> next = new LLnode(p);
-			tail = tail -> next;
-		}
-		~Linklist() {
-			LLnode *p = head -> next;
-			delete head;
-			if (!p) return;
-			head = p;
-			p = p -> next;
-			while (p) {
-				delete head -> data;
-				delete head;
-				head = p;
-				p = p -> next;
-			}
-			delete head -> data;
-			delete head;
-		}
-	}
+    };
 public:
 	static unsigned seed_a, seed_b, seed_now;
 public:
@@ -59,7 +86,7 @@ public:
 	}
 	typedef pair<const Key, T> value_type;
 private:
-	Linklist delQ;
+	vector delQ;
 	Compare cmp;
 	size_t siz;
 	class node {
