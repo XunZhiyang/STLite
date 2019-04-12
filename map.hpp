@@ -58,7 +58,8 @@ private:
 		x -> ch[d ^ 1] = x -> ch[d ^ 1] -> ch[d];
 		if (x -> ch[d ^ 1]) x -> ch[d ^ 1] -> father = x;
 		tmp -> ch[d] = x;
-		if (x -> father) x -> father -> ch[x -> father -> ch[0] == x ? 0 : 1] = tmp;
+		// if (x -> father) x -> father -> ch[x -> father -> ch[0] == x ? 0 : 1] = tmp;
+		tmp -> father = x -> father;
 		x -> father = tmp;
 		x = tmp;
 	}
