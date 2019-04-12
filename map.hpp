@@ -542,7 +542,7 @@ public:
 	}
 };
 template<class Key, class T, class Compare>
-unsigned map<Key, T, Compare>::seed_a = 69069;
+unsigned map<Key, T, Compare>::seed_a = 134775813;
 template<class Key, class T, class Compare>
 unsigned map<Key, T, Compare>::seed_b = 1;
 template<class Key, class T, class Compare>
