@@ -54,7 +54,6 @@ template<
     class vector {
     private:
         int siz;
-		int tail;
         node **head;
         void doubleSpace() {
             node **nhead = new node*[siz << 1];
@@ -66,8 +65,9 @@ template<
             siz <<= 1;
         }
     public:
-        vector() : siz(128), tail(0) {
-            head = new node*[128];
+		int tail;
+        vector() : siz(16), tail(0) {
+            head = new node*[16];
         }
 		void push_back(node * const &p) {
 			if (tail == siz) doubleSpace();
