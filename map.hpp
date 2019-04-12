@@ -22,6 +22,7 @@ public:
 	static unsigned seed_a, seed_b, seed_now;
 public:
 	static unsigned randU() {
+		// return 0;
 		return seed_now = seed_now * seed_a + seed_b;
 	}
 	typedef pair<const Key, T> value_type;
@@ -29,12 +30,24 @@ private:
 	Compare cmp;
 	size_t siz;
 	struct node {
-		node *ch[2], *next[2];
+		node *ch[2], *father;
 		value_type value;
 		unsigned w;
-		node(const Key &k, const T &d) : value(value_type(k, d)) {
+		node(const Key &k, const T &d) : value(value_type(k, d)), father(nullptr){
 			w = randU();
-			next[0] = next[1] = ch[0] = ch[1] = NULL;
+			ch[0] = ch[1] = NULL;
+		}
+		node *next(int t) {
+			if (ch[t]) {
+				node *p = ch[t];
+				while (p -> ch[t ^ 1]) p = p -> ch[t ^ 1];
+				return p;
+			}
+			else {
+				node *p = this;
+				while (p -> father && p == p -> father -> ch[t]) p = p -> father;
+				return p -> father;
+			}
 		}
 	};
 
@@ -43,7 +56,10 @@ private:
 	void rotate(node *&x, int d) {
 		node *tmp = x -> ch[d ^ 1];
 		x -> ch[d ^ 1] = x -> ch[d ^ 1] -> ch[d];
+		if (x -> ch[d ^ 1]) x -> ch[d ^ 1] -> father = x;
 		tmp -> ch[d] = x;
+		if (x -> father) x -> father -> ch[x -> father -> ch[0] == x ? 0 : 1] = tmp;
+		x -> father = tmp;
 		x = tmp;
 	}
 
@@ -56,34 +72,20 @@ private:
 		bool tmp2 = true;
 		if (cmp(k, x -> value.first)) {
 			pair<node *, bool> tmp = insert(x -> ch[0], k, d);
+			x -> ch[0] -> father = x;
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
-			if (tmp.second) {
-				if (tmp.first -> next[1] == NULL) {
-					x -> ch[0] -> next[0] = x -> next[0];
-					if (x -> next[0]) x -> next[0] -> next[1] = x -> ch[0];
-					x -> ch[0] -> next[1] = x;
-					x -> next[0] = x -> ch[0];
-				}
-				if (x -> w < x -> ch[0] -> w) {
-					rotate(x, 1);
-				}
+			if (tmp.second && x -> w < x -> ch[0] -> w) {
+				rotate(x, 1);
 			}
 		}
 		else if (cmp(x -> value.first, k)) {
 			pair<node *, bool> tmp = insert(x -> ch[1], k, d);
+			x -> ch[1] -> father = x;
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
-			if (tmp.second) {
-				if (tmp.first -> next[0] == NULL) {
-					x -> ch[1] -> next[1] = x -> next[1];
-					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
-					x -> ch[1] -> next[0] = x;
-					x -> next[1] = x -> ch[1];
-				}
-				if (x -> w < x -> ch[1] -> w) {
-					rotate(x, 0);
-				}
+			if (tmp.second && x -> w < x -> ch[1] -> w) {
+				rotate(x, 0);
 			}
 		}
 		else {
@@ -116,15 +118,10 @@ private:
 		bool tmp2 = true;
 		if (cmp(k, x -> value.first)) {
 			pair<node *, bool> tmp = locate(x -> ch[0], k);
+			x -> ch[0] -> father = x;
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
-				if (tmp.first -> next[1] == NULL) {
-					x -> ch[0] -> next[0] = x -> next[0];
-					if (x -> next[0]) x -> next[0] -> next[1] = x -> ch[0];
-					x -> ch[0] -> next[1] = x;
-					x -> next[0] = x -> ch[0];
-				}
 				if (x -> w < x -> ch[0] -> w) {
 					rotate(x, 1);
 				}
@@ -132,15 +129,10 @@ private:
 		}
 		else if (cmp(x -> value.first, k)) {
 			pair<node *, bool> tmp = locate(x -> ch[1], k);
+			x -> ch[1] -> father = x;
 			tmp1 = tmp.first;
 			tmp2 = tmp.second;
 			if (tmp.second) {
-				if (tmp.first -> next[0] == NULL) {
-					x -> ch[1] -> next[1] = x -> next[1];
-					if (x -> next[1]) x -> next[1] -> next[0] = x -> ch[1];
-					x -> ch[1] -> next[0] = x;
-					x -> next[1] = x -> ch[1];
-				}
 				if (x -> w < x -> ch[1] -> w) {
 					rotate(x, 0);
 				}
@@ -215,7 +207,7 @@ public:
 		iterator operator++(int) {
 			if (pos == NULL) throw invalid_iterator();
 			node *op = pos;
-			pos = pos -> next[1];
+			pos = pos -> next(1);
 			return iterator(op, from);
 		}
 		/**
@@ -223,7 +215,7 @@ public:
 		 */
 		iterator & operator++() {
 			if (pos == NULL) throw invalid_iterator();
-			pos = pos -> next[1];
+			pos = pos -> next(1);
 			return (*this);
 		}
 		/**
@@ -231,7 +223,7 @@ public:
 		 */
 		iterator operator--(int) {
 			node *op = pos;
-			pos = pos ? pos -> next[0] : from -> last();
+			pos = pos ? pos -> next(0) : from -> last();
 			if (pos == NULL) throw invalid_iterator();
 			return iterator(op, from);
 		}
@@ -239,7 +231,7 @@ public:
 		 * TODO --iter
 		 */
 		iterator & operator--() {
-			pos = pos ? pos -> next[0] : from -> last();
+			pos = pos ? pos -> next(0) : from -> last();
 			if (pos == NULL) throw invalid_iterator();
 			return (*this);
 		}
@@ -292,7 +284,7 @@ public:
 			const_iterator operator++(int) {
 				if (pos == NULL) throw invalid_iterator();
 				node *op = pos;
-				pos = pos -> next[1];
+				pos = pos -> next(1);
 				return const_iterator(op, from);
 			}
 			/**
@@ -300,7 +292,7 @@ public:
 			 */
 			const_iterator & operator++() {
 				if (pos == NULL) throw invalid_iterator();
-				pos = pos -> next[1];
+				pos = pos -> next(1);
 				return (*this);
 			}
 			/**
@@ -308,7 +300,7 @@ public:
 			 */
 			const_iterator operator--(int) {
 				node *op = pos;
-				pos = pos ? pos -> next[0] : from -> last();
+				pos = pos ? pos -> next(0) : from -> last();
 				if (pos == NULL) throw invalid_iterator();
 				return const_iterator(op, from);
 			}
@@ -316,7 +308,7 @@ public:
 			 * TODO --iter
 			 */
 			const_iterator & operator--() {
-				pos = pos ? pos -> next[0] : from -> last();
+				pos = pos ? pos -> next(0) : from -> last();
 				if (pos == NULL) throw invalid_iterator();
 				return (*this);
 			}
@@ -481,16 +473,14 @@ public:
 		}
 		else {
 			if (x -> ch[0] == NULL) {
-				if (x -> next[0]) x -> next[0] -> next[1] = x -> next[1];
-				if (x -> next[1]) x -> next[1] -> next[0] = x -> next[0];
 				node *tmp = x;
+				if (x -> ch[1]) x -> ch[1] -> father = x -> father;
 				x = x -> ch[1];
 				delete tmp;
 			}
 			else if (x -> ch[1] == NULL) {
-				if (x -> next[0]) x -> next[0] -> next[1] = x -> next[1];
-				if (x -> next[1]) x -> next[1] -> next[0] = x -> next[0];
 				node *tmp = x;
+			    x -> ch[0] -> father = x -> father;
 				x = x -> ch[0];
 				delete tmp;
 			}
